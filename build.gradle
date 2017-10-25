@@ -15,8 +15,8 @@ buildscript {
     dependencies {
         //classpath 'me.tatarka:gradle-retrolambda:3.2.3'
         classpath 'com.android.tools.build:gradle:2.2.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.3'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }
 }
 
@@ -50,7 +50,7 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile ('com.android.support:recyclerview-v7:23.0.0')
+    compile('com.android.support:recyclerview-v7:23.0.0')
     testCompile 'junit:junit:4.12'
 }
 
@@ -71,27 +71,49 @@ artifacts {
     archives sourcesJar
 }
 
-version = "1.0.0"
+project.version = "1.0.0"
+project.group = "com.kylins.libs"
 
-bintray  {
+bintray {
     user = project.property("bintray.user")
     key = project.property("bintray.apikey")
     configurations = ['archives']
     pkg {
-        repo = 'libs'
-        name = 'sectionadapter'
-        userOrg = 'kylins'
+        repo = 'kylins'
+        name = 'SectionAdapter'
+        userOrg = 'zhouliangshun'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/zhouliangshun/sectionadapter.git'
-        websiteUrl  = 'https://github.com/zhouliangshun/sectionadapter'
-        githubRepo  = 'zhouliangshun/sectionadapter'
+        websiteUrl = 'https://github.com/zhouliangshun/sectionadapter'
+        githubRepo = 'zhouliangshun/sectionadapter'
         desc = 'section adapter for android recyclerview'
+
+        githubReleaseNotesFile = 'README.md'
+
+        dryRun = false //[Default: false] Whether to run this as dry-run, without deploying
+        publish = true //[Default: false] Whether version should be auto published after an upload
+        override = false //[Default: false] Whether to override version artifacts already published
 
         version {
             name = '1.0.0'
-            released  = new Date()
+            released = new Date()
             vcsTag = '1.0.0'
             desc = 'version 1.0.0'
+
+            gpg {
+                sign = true //Determines whether to GPG sign the files. The default is false
+                passphrase = project.property("bintray.gpg.passphrase")
+                //Optional. The passphrase for GPG signing'
+            }
+
+            mavenCentralSync {
+                sync = true
+                //[Default: true] Determines whether to sync the version to Maven Central.
+                user = project.property("bintray.maven.user") //OSS user token: mandatory
+                password = project.property("bintray.maven.password") //OSS user password: mandatory
+                close = '1'
+                //Optional property. By default the staging repository is closed and artifacts are released to Maven Central. You can optionally turn this behaviour off (by puting 0 as value) and release the version manually.
+            }
         }
     }
 }
@@ -99,14 +121,14 @@ bintray  {
 install {
     repositories.mavenInstaller {
         pom.project {
-            name 'PreferencesObj'
+            name 'SectionAdapter'
             description 'section adapter for android recyclerviews'
             url 'https://github.com/zhouliangshun/sectionadapter'
-            inceptionYear '2016'
+            inceptionYear '2017'
 
             packaging 'aar'
             groupId 'com.kylins.libs'
-            artifactId ''
+            artifactId 'sectionadapter'
             version '1.0.0'
 
             licenses {

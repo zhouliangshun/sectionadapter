@@ -9,15 +9,19 @@ import android.view.ViewGroup;
 
 /**
  * Created by zhouliangshun on 2016/11/29.
+ * <p>
+ * SectionAdapter is like ios UITableView, You can have mutil-section is your RecyclerView.
+ * Each section can have one title and a ListView(GridView).
  */
 
-public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> extends RecyclerView.Adapter<SectionAdapter.ViewHolder> {
+public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder>
+        extends RecyclerView.Adapter<SectionAdapter.ViewHolder> {
 
 
-    private ArrayMap<Integer, Integer> sectionsSize = new ArrayMap<>();
-    private ArrayMap<Integer, View> sectionsView = new ArrayMap<>();
-    private ArrayMap<Integer, Integer> sectionsPosition = new ArrayMap<>();
-    private ArrayMap<Integer, Boolean> sectionsSkipEmpty = new ArrayMap<>();
+    private ArrayMap<Integer, Integer> sectionsSize = new ArrayMap<>(); //section count
+    private ArrayMap<Integer, View> sectionsView = new ArrayMap<>(); // section views
+    private ArrayMap<Integer, Integer> sectionsPosition = new ArrayMap<>(); //section positions
+    private ArrayMap<Integer, Boolean> sectionsSkipEmpty = new ArrayMap<>(); //record section isn't skip empty view
 
     public static final int SECTION_MAX_COUNT = 10000;
 
@@ -42,31 +46,17 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
         }
     };
 
-    /*private  GridLayoutManager.SpanSizeLookup sectionSpanSizeLookup = new GridLayoutManager.SpanSizeLookup() {
-        @Override
-        public int getSpanSize(int position) {
-            IndexPath indexPath =  positionToIndexPath(position);
-            if(indexPath.position==-1){
-                return 1;
-            }
-            return getSectionSpanSize(indexPath.section,indexPath.position);
-        }
-    };
 
-    public GridLayoutManager.SpanSizeLookup getSectionSpanSizeLookup() {
-        return sectionSpanSizeLookup;
-    }*/
-
-    public GridLayoutManager buildGridLayoutManager(Context context){
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(context,getSpanMaxSize(),GridLayoutManager.VERTICAL,false);
+    public GridLayoutManager buildGridLayoutManager(Context context) {
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(context, getSpanMaxSize(), GridLayoutManager.VERTICAL, false);
         gridLayoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
             @Override
             public int getSpanSize(int position) {
-                IndexPath indexPath =  positionToIndexPath(position);
-                if(indexPath.position==-1){
+                IndexPath indexPath = positionToIndexPath(position);
+                if (indexPath.position == -1) {
                     return getSpanMaxSize();
                 }
-                return getSectionSpanSize(indexPath.section,indexPath.position);
+                return getSectionSpanSize(indexPath.section, indexPath.position);
             }
         });
         return gridLayoutManager;
@@ -74,7 +64,8 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
 
     /**
      * calc total size for all adapter
-     * @return
+     *
+     * @return size of all item
      */
     private int calcItemSize() {
 
@@ -85,8 +76,8 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
 
         int size = 0;
         int sectionSize = getSectionCount();
-        if(sectionSize>SECTION_MAX_COUNT){
-            throw new RuntimeException("sections max size is "+SECTION_MAX_COUNT);
+        if (sectionSize > SECTION_MAX_COUNT) {
+            throw new RuntimeException("sections max size is " + SECTION_MAX_COUNT);
         }
 
         for (int i = 0; i < sectionSize; i++) {
@@ -98,19 +89,19 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
             size += secSize;
 
             View secView = getSectionView(i);
-            if(secView!=null)
+            if (secView != null)
                 sectionsView.put(i, getSectionView(i));
 
             boolean skipEmpty = sectionsSkipEmpty.get(i);
 
-            if (secSize == 0 && (skipEmpty||secView==null)){
-                sectionsPosition.put(i,-1);
+            if (secSize == 0 && (skipEmpty || secView == null)) {
+                sectionsPosition.put(i, -1);
                 continue;
             }
 
-            sectionsPosition.put(i,size-secSize);
+            sectionsPosition.put(i, size - secSize);
 
-            if(secView!=null){
+            if (secView != null) {
                 size++;
             }
         }
@@ -118,22 +109,22 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
         return size;
     }
 
-    private IndexPath positionToIndexPath(int position){
+    private IndexPath positionToIndexPath(int position) {
 
         IndexPath index = new IndexPath();
         index.position = 0;
         index.section = 0;
 
-        for(int i = 0;i<sectionsPosition.size();i++){
+        for (int i = 0; i < sectionsPosition.size(); i++) {
             int pos = sectionsPosition.get(i);
-            if(pos == -1){
+            if (pos == -1) {
                 continue;
             }
             int size = sectionsSize.get(i);
-            int end = sectionsView.containsKey(i) ? pos+size+1 : pos+size;
-            if(position < end){
+            int end = sectionsView.containsKey(i) ? pos + size + 1 : pos + size;
+            if (position < end) {
                 index.section = i;
-                index.position = sectionsView.containsKey(i) ? position-pos-1 : position-pos;
+                index.position = sectionsView.containsKey(i) ? position - pos - 1 : position - pos;
                 return index;
             }
         }
@@ -144,13 +135,13 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
     @Override
     public final int getItemViewType(int position) {
 
-        IndexPath indexPath =  positionToIndexPath(position);
-        if(indexPath.position==-1){
+        IndexPath indexPath = positionToIndexPath(position);
+        if (indexPath.position == -1) {
             return indexPath.section;
         }
 
-        int secItemViewType = getItemViewType(indexPath.section,indexPath.position);
-        if(secItemViewType < 0){
+        int secItemViewType = getItemViewType(indexPath.section, indexPath.position);
+        if (secItemViewType < 0) {
             throw new RuntimeException("ItemViewType can't low zero");
         }
 
@@ -159,11 +150,12 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
 
     /**
      * get ItemView Item;
-     * @param section section index
+     *
+     * @param section  section index
      * @param position index of section
      * @return can't not is zero,zero is section title
      */
-    protected int getItemViewType(int section,int position){
+    protected int getItemViewType(int section, int position) {
         return 1;
     }
 
@@ -172,38 +164,39 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
      *
      * @return section count,max size @see(SECTION_MAX_COUNT)
      */
-    protected int getSectionCount(){
+    protected int getSectionCount() {
         return 0;
     }
 
     /**
-     * get the
-     * @param section
-     * @param position
-     * @return
+     * Get span size of the section
+     *
+     * @param section  section index
+     * @param position position of the item
+     * @return size of section's span
      */
-    protected int getSectionSpanSize(int section,int position){
+    protected int getSectionSpanSize(int section, int position) {
         return 1;
     }
 
-    protected int getSpanMaxSize(){
+    protected int getSpanMaxSize() {
         return 1;
     }
 
     @Override
     public final ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-        if(viewType<SECTION_MAX_COUNT){
+        if (viewType < SECTION_MAX_COUNT) {
             return new SectionTitleViewHolder(sectionsView.get(viewType));
         }
-        return onCreateSectionViewHolder(parent,viewType-SECTION_MAX_COUNT);
+        return onCreateSectionViewHolder(parent, viewType - SECTION_MAX_COUNT);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        IndexPath indexPath =  positionToIndexPath(position);
-        if(indexPath.position!=-1){
-            onBindViewHolder((HW) holder,indexPath.section,indexPath.position);
+        IndexPath indexPath = positionToIndexPath(position);
+        if (indexPath.position != -1) {
+            onBindViewHolder((HW) holder, indexPath.section, indexPath.position);
         }
     }
 
@@ -216,6 +209,7 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
     }
 
     public abstract ViewHolder onCreateSectionViewHolder(ViewGroup parent, int viewType);
+
     public abstract void onBindViewHolder(HW holder, int section, int position);
 
 
@@ -235,7 +229,7 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
     /**
      * size is sections size + section views
      *
-     * @return
+     * @return all item count
      */
     @Override
     public final int getItemCount() {
@@ -246,7 +240,7 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
     public abstract int getItemCount(int section);
 
 
-    public static abstract class  ViewHolder extends RecyclerView.ViewHolder {
+    public static abstract class ViewHolder extends RecyclerView.ViewHolder {
         public ViewHolder(View itemView) {
             super(itemView);
         }
@@ -258,7 +252,7 @@ public abstract class SectionAdapter<HW extends SectionAdapter.ViewHolder> exten
         }
     }
 
-    public static class IndexPath {
+    private static class IndexPath {
         int section;
         int position;
     }
